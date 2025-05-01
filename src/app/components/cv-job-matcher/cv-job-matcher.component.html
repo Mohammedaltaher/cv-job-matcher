@@ -1,0 +1,202 @@
+<div class="cv-job-matcher-container">
+    <header class="app-header">
+      <h1>CV & Job Description Matcher</h1>
+      <p class="subtitle">Upload your CV and job description to see how well they match</p>
+    </header>
+  
+    <div class="content-container">
+      <form [formGroup]="matcherForm" (ngSubmit)="onSubmit()" class="matcher-form">
+        <div class="input-sections">
+          <!-- CV Section -->
+          <div class="input-section">
+            <h2>CV / Resume</h2>
+            <div class="file-upload-container">
+              <div class="file-upload">
+                <label for="cv-file" class="file-label">
+                  <span class="material-icons">upload_file</span>
+                  <span>Upload CV</span>
+                </label>
+                <input type="file" id="cv-file" class="file-input" (change)="onCvFileSelected($event)" accept=".pdf,.doc,.docx,.txt">
+                <span *ngIf="cvFile" class="file-name">{{ cvFile.name }}</span>
+              </div>
+            </div>
+            <div class="text-area-container">
+              <label for="cv-text">Or paste your CV text:</label>
+              <textarea id="cv-text" formControlName="cvText" class="text-input" 
+                        placeholder="Paste your CV content here..." 
+                        (input)="onCvTextChange($event)"></textarea>
+            </div>
+          </div>
+  
+          <!-- Job Description Section -->
+          <div class="input-section">
+            <h2>Job Description</h2>
+            <div class="file-upload-container">
+              <div class="file-upload">
+                <label for="jd-file" class="file-label">
+                  <span class="material-icons">upload_file</span>
+                  <span>Upload Job Description</span>
+                </label>
+                <input type="file" id="jd-file" class="file-input" (change)="onJobDescriptionFileSelected($event)" accept=".pdf,.doc,.docx,.txt">
+                <span *ngIf="jobDescriptionFile" class="file-name">{{ jobDescriptionFile.name }}</span>
+              </div>
+            </div>
+            <div class="text-area-container">
+              <label for="jd-text">Or paste job description text:</label>
+              <textarea id="jd-text" formControlName="jobDescriptionText" class="text-input" 
+                        placeholder="Paste the job description here..." 
+                        (input)="onJobDescriptionTextChange($event)"></textarea>
+            </div>
+          </div>
+        </div>
+  
+        <div class="action-buttons">
+          <div class="template-selector">
+            <label for="template">Select Template:</label>
+            <select id="template" [(ngModel)]="selectedTemplate" [ngModelOptions]="{standalone: true}">
+              <option *ngFor="let template of templates" [value]="template.value">{{ template.label }}</option>
+            </select>
+          </div>
+          <button type="submit" class="submit-button" [disabled]="isLoading || (!cvText && !jobDescriptionText)">
+            <span *ngIf="!isLoading">Analyze Match</span>
+            <span *ngIf="isLoading" class="spinner"></span>
+          </button>
+          <button type="button" class="clear-button" (click)="clearForm()">Clear All</button>
+        </div>
+      </form>
+  
+      <!-- Results Section -->
+      <div *ngIf="matchResult" class="results-section">
+        <h2>Analysis Results</h2>
+        <div class="result-content">
+          <!-- Personal Information -->
+          <div class="result-section">
+            <h3>Personal Information</h3>
+            <p><strong>Name:</strong> {{ matchResult.textResult.personal_info.name }}</p>
+            <p><strong>Title:</strong> {{ matchResult.textResult.personal_info.title }}</p>
+            <p><strong>Location:</strong> {{ matchResult.textResult.personal_info.location }}</p>
+            <p><strong>Email:</strong> {{ matchResult.textResult.personal_info.email }}</p>
+            <p><strong>Phone:</strong> {{ matchResult.textResult.personal_info.phone }}</p>
+            <p><strong>Nationality:</strong> {{ matchResult.textResult.personal_info.nationality }}</p>
+          </div>
+
+          <!-- Profile -->
+          <div hidden class="result-section">
+            <h3>Profile</h3>
+            <p>{{ matchResult.textResult.profile }}</p>
+          </div>
+
+          <!-- Skills -->
+          <div hidden class="result-section">
+            <h3>Skills</h3>
+            <div *ngFor="let category of getSkillCategories()" class="skills-category">
+              <h4>{{ category }}</h4>
+              <ul>
+                <li *ngFor="let skill of matchResult.textResult.skills[category]">{{ skill }}</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Professional Experience -->
+          <div hidden class="result-section">
+            <h3>Professional Experience</h3>
+            <div *ngFor="let exp of matchResult.textResult.professional_experience" class="experience-item">
+              <h4>{{ exp.role }} at {{ exp.company }}</h4>
+              <p><strong>Duration:</strong> {{ exp.duration }}</p>
+              <p><strong>Location:</strong> {{ exp.location }}</p>
+              <p><strong>Tools:</strong> {{ exp.tools }}</p>
+              <p><strong>Description:</strong> {{ exp.description }}</p>
+              
+              <div *ngIf="exp.achievements.length > 0">
+                <h5>Achievements</h5>
+                <ul>
+                  <li *ngFor="let achievement of exp.achievements">{{ achievement }}</li>
+                </ul>
+              </div>
+
+              <div *ngIf="exp.projects.length > 0">
+                <h5>Projects</h5>
+                <ul>
+                  <li *ngFor="let project of exp.projects">
+                    <strong>{{ project.name }}:</strong> {{ project.description }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Education -->
+          <div hidden class="result-section">
+            <h3>Education</h3>
+            <div *ngFor="let edu of matchResult.textResult.education" class="education-item">
+              <h4>{{ edu.degree }}</h4>
+              <p><strong>Institution:</strong> {{ edu.institution }}</p>
+              <p><strong>Location:</strong> {{ edu.location }}</p>
+              <p><strong>Year:</strong> {{ edu.year }}</p>
+            </div>
+          </div>
+
+          <!-- Languages -->
+          <div hidden class="result-section">
+            <h3>Languages</h3>
+            <ul>
+              <li *ngFor="let lang of matchResult.textResult.languages">{{ lang }}</li>
+            </ul>
+          </div>
+
+          <!-- Suggestions -->
+          <div hidden class="result-section">
+            <h3>Suggestions for Improvement</h3>
+            
+            <div *ngIf="matchResult.textResult.suggestions.missing_skills.length > 0">
+              <h4>Missing Skills</h4>
+              <ul>
+                <li *ngFor="let skill of matchResult.textResult.suggestions.missing_skills">{{ skill }}</li>
+              </ul>
+            </div>
+
+            <div *ngIf="matchResult.textResult.suggestions.under_emphasized_experiences.length > 0">
+              <h4>Under-emphasized Experiences</h4>
+              <ul>
+                <li *ngFor="let exp of matchResult.textResult.suggestions.under_emphasized_experiences">{{ exp }}</li>
+              </ul>
+            </div>
+
+            <div *ngIf="matchResult.textResult.suggestions.phrasing_improvements.length > 0">
+              <h4>Phrasing Improvements</h4>
+              <ul>
+                <li *ngFor="let imp of matchResult.textResult.suggestions.phrasing_improvements">{{ imp }}</li>
+              </ul>
+            </div>
+
+            <div *ngIf="matchResult.textResult.suggestions.additional_suggestions.length > 0">
+              <h4>Additional Suggestions</h4>
+              <ul>
+                <li *ngFor="let sugg of matchResult.textResult.suggestions.additional_suggestions">{{ sugg }}</li>
+              </ul>
+            </div>
+            <div>
+              <h4>Score</h4>
+              <p>{{ matchResult.textResult.suggestions.score }}</p>
+            </div>
+          </div>
+
+          <div class="result-actions">
+            <button (click)="downloadResult()" class="download-button">
+              <span class="material-icons">download</span>
+              Download as Text
+            </button>
+            <button (click)="downloadPdf()" class="download-button" *ngIf="matchResult?.pdf_path">
+              <span class="material-icons">picture_as_pdf</span>
+              Download as PDF
+            </button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Error Message -->
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+    </div>
+  </div>

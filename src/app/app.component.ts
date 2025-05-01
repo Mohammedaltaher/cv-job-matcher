@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { CvJobMatcherComponent } from './components/cv-job-matcher/cv-job-matcher.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrls: ['./app.component.scss'],
+  standalone: true,
+  imports: [CvJobMatcherComponent]
 })
 export class AppComponent {
-  title = 'cv-job-matcher';
+  title = 'CV Job Matcher';
 }
