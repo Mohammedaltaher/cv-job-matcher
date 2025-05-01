@@ -72,35 +72,26 @@
           <!-- Personal Information -->
           <div class="result-section">
             <h3>Personal Information</h3>
-            <p><strong>Name:</strong> {{ matchResult.textResult.personal_info.name }}</p>
-            <p><strong>Title:</strong> {{ matchResult.textResult.personal_info.title }}</p>
-            <p><strong>Location:</strong> {{ matchResult.textResult.personal_info.location }}</p>
-            <p><strong>Email:</strong> {{ matchResult.textResult.personal_info.email }}</p>
-            <p><strong>Phone:</strong> {{ matchResult.textResult.personal_info.phone }}</p>
-            <p><strong>Nationality:</strong> {{ matchResult.textResult.personal_info.nationality }}</p>
+            <p><strong>Name:</strong> {{ matchResult.personalInfo.name }}</p>
+            <p><strong>Title:</strong> {{ matchResult.personalInfo.title }}</p>
+            <p><strong>Location:</strong> {{ matchResult.personalInfo.location }}</p>
+            <p><strong>Email:</strong> {{ matchResult.personalInfo.email }}</p>
+            <p><strong>Phone:</strong> {{ matchResult.personalInfo.phone }}</p>
+            <p><strong>Nationality:</strong> {{ matchResult.personalInfo.nationality }}</p>
           </div>
 
           <!-- Profile -->
           <div hidden class="result-section">
             <h3>Profile</h3>
-            <p>{{ matchResult.textResult.profile }}</p>
+            <p>{{ matchResult.profile }}</p>
           </div>
 
-          <!-- Skills -->
-          <div hidden class="result-section">
-            <h3>Skills</h3>
-            <div *ngFor="let category of getSkillCategories()" class="skills-category">
-              <h4>{{ category }}</h4>
-              <ul>
-                <li *ngFor="let skill of matchResult.textResult.skills[category]">{{ skill }}</li>
-              </ul>
-            </div>
-          </div>
+        
 
           <!-- Professional Experience -->
           <div hidden class="result-section">
             <h3>Professional Experience</h3>
-            <div *ngFor="let exp of matchResult.textResult.professional_experience" class="experience-item">
+            <div *ngFor="let exp of matchResult.professionalExperiences" class="experience-item">
               <h4>{{ exp.role }} at {{ exp.company }}</h4>
               <p><strong>Duration:</strong> {{ exp.duration }}</p>
               <p><strong>Location:</strong> {{ exp.location }}</p>
@@ -128,7 +119,7 @@
           <!-- Education -->
           <div hidden class="result-section">
             <h3>Education</h3>
-            <div *ngFor="let edu of matchResult.textResult.education" class="education-item">
+            <div *ngFor="let edu of matchResult.education" class="education-item">
               <h4>{{ edu.degree }}</h4>
               <p><strong>Institution:</strong> {{ edu.institution }}</p>
               <p><strong>Location:</strong> {{ edu.location }}</p>
@@ -140,44 +131,26 @@
           <div hidden class="result-section">
             <h3>Languages</h3>
             <ul>
-              <li *ngFor="let lang of matchResult.textResult.languages">{{ lang }}</li>
+              <li *ngFor="let lang of matchResult.languages">{{ lang }}</li>
             </ul>
           </div>
 
           <!-- Suggestions -->
           <div hidden class="result-section">
             <h3>Suggestions for Improvement</h3>
-            
-            <div *ngIf="matchResult.textResult.suggestions.missing_skills.length > 0">
-              <h4>Missing Skills</h4>
+
+            <div *ngIf="matchResult.agentNotes.interviewFocusTips">
+              <h4>Interview Focus Tips</h4>
               <ul>
-                <li *ngFor="let skill of matchResult.textResult.suggestions.missing_skills">{{ skill }}</li>
+                <li *ngFor="let exp of matchResult.agentNotes.interviewFocusTips">{{ exp }}</li>
               </ul>
             </div>
 
-            <div *ngIf="matchResult.textResult.suggestions.under_emphasized_experiences.length > 0">
-              <h4>Under-emphasized Experiences</h4>
+            <div *ngIf="matchResult.agentNotes.summaryOfChanges">
+              <h4>Summary of Changes</h4>
               <ul>
-                <li *ngFor="let exp of matchResult.textResult.suggestions.under_emphasized_experiences">{{ exp }}</li>
+                <li *ngFor="let imp of matchResult.agentNotes.summaryOfChanges">{{ imp }}</li>
               </ul>
-            </div>
-
-            <div *ngIf="matchResult.textResult.suggestions.phrasing_improvements.length > 0">
-              <h4>Phrasing Improvements</h4>
-              <ul>
-                <li *ngFor="let imp of matchResult.textResult.suggestions.phrasing_improvements">{{ imp }}</li>
-              </ul>
-            </div>
-
-            <div *ngIf="matchResult.textResult.suggestions.additional_suggestions.length > 0">
-              <h4>Additional Suggestions</h4>
-              <ul>
-                <li *ngFor="let sugg of matchResult.textResult.suggestions.additional_suggestions">{{ sugg }}</li>
-              </ul>
-            </div>
-            <div>
-              <h4>Score</h4>
-              <p>{{ matchResult.textResult.suggestions.score }}</p>
             </div>
           </div>
 
@@ -186,7 +159,7 @@
               <span class="material-icons">download</span>
               Download as Text
             </button>
-            <button (click)="downloadPdf()" class="download-button" *ngIf="matchResult?.pdf_path">
+            <button (click)="downloadPdf()" class="download-button" *ngIf="matchResult?.pdfPath">
               <span class="material-icons">picture_as_pdf</span>
               Download as PDF
             </button>

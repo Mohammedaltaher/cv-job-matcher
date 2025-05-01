@@ -55,8 +55,68 @@ export interface TextResult {
   suggestions: Suggestions;
 }
 
+export interface ResumeDto {
+    id: string;
+    pdfPath: string;
+    personalInfo: PersonalInfoDto;
+    profile: string;
+    skills: SkillsDto;
+    professionalExperiences: ProfessionalExperienceDto[];
+    education: EducationDto[];
+    languages: string[];
+    agentNotes: AgentNotesDto;
+}
+
+export interface PersonalInfoDto {
+    name: string;
+    title: string;
+    location: string;
+    email: string;
+    phone: string;
+    nationality: string;
+}
+
+export interface SkillsDto {
+    categories: CategoryDto[];
+}
+
+export interface CategoryDto {
+    name: string;
+    skills: string[];
+}
+
+export interface ProfessionalExperienceDto {
+    role: string;
+    company: string;
+    duration: string;
+    location: string;
+    tools: string;
+    description: string;
+    achievements: string[];
+    projects: ProjectDto[];
+}
+
+export interface ProjectDto {
+    name: string;
+    description: string;
+}
+
+export interface EducationDto {
+    degree: string;
+    institution: string;
+    location: string;
+    year: string;
+}
+
+export interface AgentNotesDto {
+    summaryOfChanges: string[];
+    interviewFocusTips: string[];
+}
+
 export interface MatchResult {
-  textResult: TextResult;
-  pdf_path: string;
+    resume: ResumeDto;
+    matchScore: number;
+    matchingSkills: string[];
+    missingSkills: string[];
 }
   

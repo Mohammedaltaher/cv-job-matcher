@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MatcherService } from '../../services/matcher.service';
-import { MatchResult } from '../../models/matcher.model';
+import { MatchResult, ResumeDto } from '../../models/matcher.model';
 import { NgIf, NgFor } from '@angular/common';
 
 @Component({
@@ -17,7 +17,7 @@ export class CvJobMatcherComponent implements OnInit {
     jobDescriptionText = '';
     cvFile: File | null = null;
     jobDescriptionFile: File | null = null;
-    matchResult: MatchResult | null = null;
+    matchResult: ResumeDto | null = null;
     isLoading = false;
     errorMessage = '';
     selectedTemplate = 'classic';
@@ -41,16 +41,10 @@ export class CvJobMatcherComponent implements OnInit {
 
     ngOnInit(): void { }
 
-    getSkillCategories(): string[] {
-        if (!this.matchResult?.textResult?.skills) return [];
-        return Object.keys(this.matchResult.textResult.skills);
-    }
-
     onCvFileSelected(event: any): void {
         const file = event.target.files[0];
         if (file) {
             this.cvFile = file;
-            this.readFileContent(file, 'cv');
         }
     }
 
@@ -58,23 +52,7 @@ export class CvJobMatcherComponent implements OnInit {
         const file = event.target.files[0];
         if (file) {
             this.jobDescriptionFile = file;
-            this.readFileContent(file, 'jobDescription');
         }
-    }
-
-    readFileContent(file: File, type: 'cv' | 'jobDescription'): void {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const content = e.target?.result as string;
-            if (type === 'cv') {
-                this.cvText = content;
-                this.matcherForm.get('cvText')?.setValue(content);
-            } else {
-                this.jobDescriptionText = content;
-                this.matcherForm.get('jobDescriptionText')?.setValue(content);
-            }
-        };
-        reader.readAsText(file);
     }
 
     onCvTextChange(event: any): void {
@@ -86,8 +64,8 @@ export class CvJobMatcherComponent implements OnInit {
     }
 
     onSubmit(): void {
-        if (!this.cvText && !this.jobDescriptionText) {
-            this.errorMessage = 'Please provide either CV text or job description text.';
+        if (!this.cvText && !this.cvFile && !this.jobDescriptionText && !this.jobDescriptionFile) {
+            this.errorMessage = 'Please provide either CV text/file or job description text/file.';
             return;
         }
 
@@ -95,8 +73,14 @@ export class CvJobMatcherComponent implements OnInit {
         this.errorMessage = '';
         this.matchResult = null;
 
-        this.matcherService.matchCvWithJob(this.cvText, this.jobDescriptionText, this.selectedTemplate).subscribe({
-            next: (response: MatchResult) => {
+        this.matcherService.matchCvWithJob(
+            this.cvFile,
+            this.jobDescriptionFile,
+            this.cvText,
+            this.jobDescriptionText,
+            this.selectedTemplate
+        ).subscribe({
+            next: (response: ResumeDto) => {
                 this.isLoading = false;
                 this.matchResult = response;
             },
@@ -109,9 +93,9 @@ export class CvJobMatcherComponent implements OnInit {
     }
 
     downloadPdf(): void {
-        if (!this.matchResult?.pdf_path) return;
+        if (!this.matchResult?.pdfPath) return;
         
-        this.matcherService.downloadPdf(this.matchResult.pdf_path).subscribe({
+        this.matcherService.downloadPdf(this.matchResult.pdfPath).subscribe({
             next: (blob: Blob) => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -145,17 +129,17 @@ export class CvJobMatcherComponent implements OnInit {
     private formatResultForDownload(): string {
         if (!this.matchResult) return '';
         
-        const result = this.matchResult.textResult;
+        const result = this.matchResult  ;
         let text = 'CV & Job Match Analysis\n\n';
         
         // Personal Info
         text += 'Personal Information:\n';
-        text += `Name: ${result.personal_info.name}\n`;
-        text += `Title: ${result.personal_info.title}\n`;
-        text += `Location: ${result.personal_info.location}\n`;
-        text += `Email: ${result.personal_info.email}\n`;
-        text += `Phone: ${result.personal_info.phone}\n`;
-        text += `Nationality: ${result.personal_info.nationality}\n\n`;
+        text += `Name: ${result.personalInfo.name}\n`;
+        text += `Title: ${result.personalInfo.title}\n`;
+        text += `Location: ${result.personalInfo.location}\n`;
+        text += `Email: ${result.personalInfo.email}\n`;
+        text += `Phone: ${result.personalInfo.phone}\n`;
+        text += `Nationality: ${result.personalInfo.nationality}\n\n`;
         
         // Profile
         text += 'Profile:\n';
@@ -171,7 +155,7 @@ export class CvJobMatcherComponent implements OnInit {
         
         // Professional Experience
         text += 'Professional Experience:\n';
-        result.professional_experience.forEach(exp => {
+        result.professionalExperiences.forEach(exp => {
             text += `\nRole: ${exp.role}\n`;
             text += `Company: ${exp.company}\n`;
             text += `Duration: ${exp.duration}\n`;
@@ -204,14 +188,10 @@ export class CvJobMatcherComponent implements OnInit {
         
         // Suggestions
         text += 'Suggestions for Improvement:\n';
-        text += 'Missing Skills:\n';
-        result.suggestions.missing_skills.forEach(skill => text += `- ${skill}\n`);
-        text += '\nUnder-emphasized Experiences:\n';
-        result.suggestions.under_emphasized_experiences.forEach(exp => text += `- ${exp}\n`);
-        text += '\nPhrasing Improvements:\n';
-        result.suggestions.phrasing_improvements.forEach(imp => text += `- ${imp}\n`);
-        text += '\nAdditional Suggestions:\n';
-        result.suggestions.additional_suggestions.forEach(sugg => text += `- ${sugg}\n`);
+        text += 'Interview Focus Tips:\n';
+        result.agentNotes.interviewFocusTips.forEach(skill => text += `- ${skill}\n`);
+        text += '\nSummary of Changes:\n';
+        result.agentNotes.summaryOfChanges.forEach(exp => text += `- ${exp}\n`);
         
         return text;
     }
